@@ -495,52 +495,11 @@ plt.savefig('ranking_model_results.png', dpi=150, bbox_inches='tight')
 print("  Saved: ranking_model_results.png")
 # plt.show()  # Uncomment in Colab or interactive
 
-# %%
-# =============================================================================
-# SECTION 12: INTERVIEW TALKING POINTS
-# =============================================================================
 
-print("""
-╔══════════════════════════════════════════════════════════════════════╗
-║                    INTERVIEW TALKING POINTS                         ║
-╠══════════════════════════════════════════════════════════════════════╣
-║                                                                      ║
-║  Q: "What was the user-ranking model?"                              ║
-║  A: "A recommendation/search ranking system that predicted which     ║
-║      items users would engage with. The core challenge was position  ║
-║      bias — users click top-ranked items regardless of actual        ║
-║      relevance, corrupting the training signal."                     ║
-║                                                                      ║
-║  Q: "How did you correct for bias?"                                 ║
-║  A: "Two approaches. First, removed position from model input,      ║
-║      forcing it to learn actual item quality. Second (production),   ║
-║      we decomposed: P(click) = sigmoid(relevance + position_bias).  ║
-║      Train learns both; inference zeros out bias for pure rankings." ║
-║                                                                      ║
-║  Q: "What's sequential context modeling?"                           ║
-║  A: "Instead of a static user embedding, we processed recent        ║
-║      interactions with a GRU. Captures intent drift: browsing →     ║
-║      comparing → buying. Dynamic user representation beats static." ║
-║                                                                      ║
-║  Q: "How did you measure the improvement?"                          ║
-║  A: "Compared NDCG@K, AUC-ROC, accuracy: baseline (with position)  ║
-║      vs full model (sequential + debiased) on held-out test data."  ║
-║                                                                      ║
-║  Q: "Why not just remove position entirely?"                        ║
-║  A: "That's step one (Model B). But additive decomposition learns   ║
-║      HOW MUCH position biases, then subtracts exactly that amount.  ║
-║      Combined with sequential context = best results."              ║
-║                                                                      ║
-║  Q: "Why GRU over Transformer?"                                     ║
-║  A: "10-20 length sequences → GRU more efficient. Transformers      ║
-║      need 100+ tokens. GRU trained faster, comparable accuracy."    ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-""")
 
 # %%
 # =============================================================================
-# SECTION 13: CONCEPT MAP
+# SECTION 12: CONCEPT MAP
 # =============================================================================
 
 print("""
