@@ -1,51 +1,72 @@
-# Embedding-Drift Impact Reduction Through Continuous Monitoring & Automated Retraining
+# User-Ranking Model with Bias-Corrected Embeddings & Sequential Context Modeling
 
 ## Resume Bullet
-> **"Embedding-drift impact reduction of 32% through continuous embedding-space monitoring and automated retraining triggers"**
+> **"User-ranking model accuracy increase of 15% through bias-corrected embeddings and sequential context modeling"**
 
-A runnable, end-to-end project that teaches you exactly what every word means — with code you can step through, modify, and explain in an interview.
+A runnable, end-to-end project that teaches you exactly what every word in that bullet means — with code you can step through, modify, and explain in an interview.
 
 ---
 
 ## What Does This Actually Mean? (Plain English)
 
-Your ML system uses **embeddings** (dense vectors) to represent items, users, or documents. These embeddings are learned when you train the model.
+Imagine building the ranking system for Amazon search. A user searches "wireless headphones" and sees 10 products. They click the **2nd result**.
 
-**The problem:** The real world keeps changing, but your embeddings are frozen.
-- New products appear that don't match old embeddings
-- User behavior shifts (pandemic, trends, seasons)
-- Language evolves ("AI agent" means something different in 2024 vs 2023)
+**Question:** Did they click because it was the *best* headphone? Or because it was near the *top of the page*?
 
-**Result:** Your search/recommendation quality silently degrades. Users get worse results. Nobody notices until it's bad.
-
-**The solution:** Continuously monitor the embedding space for drift. When drift exceeds thresholds, automatically trigger model retraining. This catches degradation early instead of letting it accumulate.
+**This is position bias** — users naturally click higher-ranked items, which corrupts training data. A naive model learns "items at position 1 are great!" instead of learning actual quality.
 
 ### The Three Key Concepts
 
 | Concept | What It Means | Why It Matters |
 |---|---|---|
-| **Embedding Drift** | Gap between frozen model embeddings and current reality | Search/recs silently degrade over time |
-| **Continuous Monitoring** | Scheduled computation of drift metrics (centroid shift, KL divergence, recall) | Catches drift early before users notice |
-| **Automated Retraining Triggers** | Rules that fire model retraining when metrics cross thresholds | No manual intervention needed, minimal quality loss |
+| **User-Ranking Model** | Predicts which item a user will click/buy from a ranked list | Core of search & recommendation systems |
+| **Bias-Corrected Embeddings** | Learns position bias separately, then removes it at inference | Rankings reflect true relevance, not display position |
+| **Sequential Context Modeling** | Uses recent click history as a sequence to model evolving intent | Captures "browsing → comparing → ready to buy" |
+
+### The Core Math
+
+```
+TRAINING:   P(click) = sigmoid(relevance_score + position_bias)
+                       ↑ Model learns BOTH terms from click data
+
+INFERENCE:  P(click) = sigmoid(relevance_score + 0)
+                       ↑ Position bias zeroed out → pure quality ranking
+```
+
+---
+
+## Project Structure
+
+```
+user_ranking_bias_correction.py     # Main script (VS Code + Colab)
+README_user_ranking.md              # This file
+ranking_model_results.png           # Generated after running
+```
 
 ---
 
 ## How to Run
 
-### VS Code (Interactive)
-1. Install Jupyter extension
-2. Open `embedding_drift_monitor.py` — each `# %%` is a runnable cell
-3. `pip install numpy pandas scikit-learn matplotlib seaborn scipy`
-4. Step through cell by cell
+### Option A: Google Colab
 
-### Google Colab
-1. Upload `embedding_drift_monitor.py` to Colab
-2. Run All (Ctrl+F9) — ~2 minutes, no GPU needed
+1. Go to [Google Colab](https://colab.research.google.com)
+2. File → Upload Notebook → Upload `user_ranking_bias_correction.py`
+3. Run All (Ctrl+F9) — takes ~1-2 minutes, no GPU needed
 
-### Command Line
+**Note:** The script uses `# %%` cell markers. Colab treats these as interactive cells automatically.
+
+### Option B: VS Code (Interactive Python)
+
+1. Install the **Jupyter** extension in VS Code
+2. Open `user_ranking_bias_correction.py`
+3. Each `# %%` creates a runnable cell — click "Run Cell" to step through
+4. Dependencies: `pip install numpy pandas scikit-learn matplotlib seaborn`
+
+### Option C: Command Line
+
 ```bash
-pip install numpy pandas scikit-learn matplotlib seaborn scipy
-python embedding_drift_monitor.py
+pip install numpy pandas scikit-learn matplotlib seaborn
+python user_ranking_bias_correction.py
 ```
 
 ---
@@ -54,68 +75,62 @@ python embedding_drift_monitor.py
 
 | Section | What Happens | Key Concept |
 |---|---|---|
-| **2** | Create initial embedding space (items + queries) | Embeddings start calibrated at t=0 |
-| **3** | Simulate 3 drift types over 20 time steps | Gradual + sudden + seasonal drift |
-| **4** | Compute 6 drift metrics at each step | Centroid shift, KL div, neighborhood stability, recall |
-| **5** | Define automated retraining trigger rules | Threshold, rate-of-change, and composite triggers |
-| **6** | Run A/B: no-monitoring vs monitored | Fixed-schedule vs trigger-based retraining |
-| **7** | Compare results → ~32% impact reduction | The headline number |
-| **8** | Visualizations: recall curves, drift metrics, bar charts | Evidence you can show |
-| **9-10** | Production architecture + interview Q&A | What to SAY about this |
+| **1-2** | Generate synthetic e-commerce click data with position bias | Position bias = users click top items regardless of quality |
+| **3** | Build sequential interaction histories per user | Sequential context = order of clicks matters |
+| **4** | Feature engineering: baseline vs sequential features | Recency-weighted embeddings capture evolving intent |
+| **5** | Train/test split and scaling | Standard ML pipeline |
+| **6** | Baseline model: GBT with position features (biased) | The "before" — learns biased patterns |
+| **7** | Bias-corrected model: position features removed | Forces model to learn actual item quality |
+| **8** | Full model: bias-corrected + sequential context features | The "after" — learns quality + evolving user intent |
+| **9** | Test evaluation with AUC, accuracy, NDCG | Ranking-specific metrics |
+| **10** | Head-to-head comparison → the ~15% improvement | The headline number |
+| **11** | Visualizations: metrics bars, position fairness, feature importance | Evidence you can show |
+| **12-13** | Interview Q&A and concept map | What to SAY about this |
 
 ---
 
-## Drift Detection Metrics
-
-| Metric | What It Detects | How It Works |
-|---|---|---|
-| **Centroid Shift** | Global distribution movement | Cosine distance between mean embedding vectors |
-| **KL Divergence** | Statistical distribution change | Compares similarity score histograms over time |
-| **Neighborhood Stability** | Retrieval result changes | Jaccard overlap of top-K neighbors now vs. reference |
-| **Per-Item Cosine Drift** | Individual item degradation | Cosine similarity of each item's embedding vs. original |
-| **Recall@K** | Business impact | Are we still finding the right items? |
-| **Wasserstein Distance** | Distribution shape change | Earth mover's distance between embedding norm distributions |
-
----
-
-## Retraining Trigger Types
-
-| Trigger Type | Rule | Use Case |
-|---|---|---|
-| **Threshold** | `centroid_shift > 0.04` | Catches any significant drift |
-| **Rate-of-Change** | `recall_drop > 5% per period` | Catches sudden drift events |
-| **Composite** | `centroid > 0.03 AND recall < 0.85` | Reduces false alarms |
-| **Cooldown** | Min 4 steps between retrains | Prevents trigger storms |
-
-
-## Production Architecture
+## Architecture
 
 ```
-Live Traffic → Embedding Service → Metrics Store (Prometheus)
-                                         │
-                                   Drift Monitor (Airflow DAG)
-                                   • Centroid shift
-                                   • KL divergence
-                                   • Recall@K
-                                   • Neighborhood stability
-                                         │
-                                   Trigger Engine
-                                   IF centroid > 0.04 OR recall < 0.80
-                                         │
-                                   Retraining Pipeline (SageMaker)
-                                   1. Pull fresh data
-                                   2. Fine-tune model
-                                   3. Generate new embeddings
-                                   4. A/B test → promote if better
+┌──────────────────────────────────────────────────────────────────┐
+│  BIAS-CORRECTED SEQUENTIAL RANKER                                │
+│                                                                   │
+│  ┌───────────────┐     ┌─────────────────┐     ┌──────────────┐ │
+│  │ Past 10 Items  │────►│ Recency-Weighted│────►│ User Context │ │
+│  │ (sequence)     │     │ Averaging / GRU │     │ Vector       │ │
+│  └───────────────┘     └─────────────────┘     └──────┬───────┘ │
+│                                                        │         │
+│  ┌───────────────┐                                     │         │
+│  │ Target Item    │────────────────────────────────────►├─► MLP  │
+│  │ Embedding      │                                     │  Head  │
+│  └───────────────┘                          ┌──────────┤        │
+│                                             │          ▼         │
+│  ┌───────────────┐     ┌────────────┐      │     Relevance     │
+│  │ Position ID    │────►│ Bias Param │──────┘     + Bias        │
+│  └───────────────┘     │ (learned)  │            = P(click)     │
+│                        │ REMOVED AT │                            │
+│                        │ INFERENCE! │                            │
+│                        └────────────┘                            │
+└──────────────────────────────────────────────────────────────────┘
 ```
+
+
+## Key Metrics to Know
+
+| Metric | What It Measures | Why It Matters |
+|---|---|---|
+| **NDCG@K** | Are the best items ranked in the top K? | Primary ranking quality metric |
+| **AUC-ROC** | Discrimination between clicks and non-clicks | General model quality |
+| **Accuracy** | Binary prediction correctness | Easy to communicate ("15% more accurate") |
+| **Position-stratified Accuracy** | Accuracy by display position | Proves bias correction works (should be uniform) |
 
 ---
 
 ## Dependencies
 
 - Python 3.8+
-- NumPy, Pandas, Scikit-learn, SciPy, Matplotlib, Seaborn
-- **No GPU, no PyTorch required**
+- NumPy, Pandas, Scikit-learn, Matplotlib, Seaborn
+- **No GPU, no PyTorch required** (runs on any laptop)
 
 ---
 
@@ -123,8 +138,9 @@ Live Traffic → Embedding Service → Metrics Store (Prometheus)
 
 | This Demo | Production Version |
 |---|---|
-| Simulated drift | Real traffic data capture |
-| In-memory metrics | Prometheus / CloudWatch time-series DB |
-| Print-based alerts | PagerDuty / Slack / OpsGenie |
-| simulate_retrain() | SageMaker / Vertex AI training job |
-| Same concepts | Same interview answers |
+| Sklearn GradientBoosting | PyTorch / TensorFlow |
+| Recency-weighted average | GRU / LSTM / Transformer encoder |
+| 1.5K users, 400 items | Millions of users and items |
+| Synthetic data | Real click logs from search/recommendations |
+| Single machine | Distributed training (DeepSpeed/FSDP) |
+| Same math, same concepts | Same interview answers |
